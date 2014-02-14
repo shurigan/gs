@@ -55,7 +55,9 @@ SS.delP(p2)
 
 //SS.logL()
 
-p1.move(10)
+
+p1.setThrottle(100);
+//p1.move(10)
 
 /*
 a.on('foo', b.bar)
@@ -69,3 +71,4 @@ b.on('goodsList', function(list) {
 })
 */
 
+//require('http').createServer(function() {}).listen(8888)
