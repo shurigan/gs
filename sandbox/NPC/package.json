@@ -1,0 +1,4 @@
+{
+    "name": "NPC",
+    "main": "./lib/Fabric.js"
+}
