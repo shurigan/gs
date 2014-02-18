@@ -1,45 +1,51 @@
 
-var connect = require('connect'),
-    http = require('http'),
-    io = require('socket.io');
+/**
+ * Module dependencies.
+ */
 
-var app = connect()
-    .use(connect.logger('dev'))
-    .use(connect.static(__dirname + '/static'));
+var express = require('express');
+var routes = require('./routes');
+var user = require('./routes/user');
+var http = require('http');
+var path = require('path');
 
-var httpPort = process.argv[2] | 8088;
+var app = express();
 
-http = http.createServer(app);
-io = io.listen(http);
+// all environments
+app.set('port', process.env.PORT || 8088);
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+app.use(express.favicon());
+app.use(express.logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded());
+app.use(express.methodOverride());
+app.use(express.bodyParser());
+app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
 
-http.listen(httpPort);
+// development only
+if ('development' == app.get('env')) {
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+}
 
-var gs = (function () {
-    return {
-        say: function(player, what) {
-            console.log(what);
-            io.sockets.emit('message', { player: player, what: what })
-        },
+if ('production' == app.get('env')) {
+    app.use(express.errorHandler());
+}
 
+app.get('/game/*', function(req, res, next) {
+    console.log('self middleware on ' + req.url);
+    if(req.url == "/game/aaa") {
+        res.send(404, 'asasd');
+    } else {
+        next();
     }
-})()
-
-io.sockets.on('connection', function (socket) {
-//    socket.emit('news', { hello: 'world' });
-    socket.on('action', function (data) {
-        if(data.action == 'click') {
-
-        }
-
-        console.log(data);
-    });
 });
 
+app.get('/', routes.index);
+app.get('/users', user.list);
 
-
-var cycle = function() {
-    gs.say(100, "WTF")
-    setTimeout(cycle, 1000);
-};
-
-setTimeout(cycle, 0);
+http.createServer(app).listen(app.get('port'), function(){
+  console.log('Express running in ' + app.get('env') + ' environment.');
+  console.log('Express server listening on port ' + app.get('port'));
+});
